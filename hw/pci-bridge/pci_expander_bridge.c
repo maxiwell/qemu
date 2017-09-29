@@ -94,7 +94,7 @@ static const TypeInfo pxb_pcie_bus_info = {
     .class_init    = pxb_bus_class_init,
 };
 
-static const char *pxb_host_root_bus_path(PCIHostState *host_bridge,
+static const char *pxb_host_root_bus_path(PCIHost *phb,
                                           PCIBus *rootbus)
 {
     PXBBus *bus = pci_bus_is_express(rootbus) ?
@@ -139,7 +139,7 @@ static void pxb_host_class_init(ObjectClass *class, void *data)
 {
     DeviceClass *dc = DEVICE_CLASS(class);
     SysBusDeviceClass *sbc = SYS_BUS_DEVICE_CLASS(class);
-    PCIHostBridgeClass *hc = PCI_HOST_BRIDGE_CLASS(class);
+    PCIHostClass *hc = PCI_HOST_CLASS(class);
 
     dc->fw_name = "pci";
     /* Reason: Internal part of the pxb/pxb-pcie device, not usable by itself */

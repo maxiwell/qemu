@@ -30,13 +30,27 @@
 
 #include "hw/sysbus.h"
 
+#define TYPE_PCI_HOST "pci-host"
+#define PCI_HOST(obj)                                           \
+    OBJECT_CHECK(PCIHost, (obj), TYPE_PCI_HOST)
+#define PCI_HOST_CLASS(klass)                                   \
+    OBJECT_CLASS_CHECK(PCIHostClass, (klass), TYPE_PCI_HOST)
+#define PCI_HOST_GET_CLASS(obj)                                 \
+    OBJECT_GET_CLASS(PCIHostClass, (obj), TYPE_PCI_HOST)
+
+typedef struct PCIHost {
+    Object parent;
+} PCIHost;
+
+typedef struct PCIHostClass {
+    InterfaceClass parent;
+
+    const char *(*root_bus_path)(PCIHost *, PCIBus *);
+} PCIHostClass;
+
 #define TYPE_PCI_HOST_BRIDGE "pci-host-bridge"
 #define PCI_HOST_BRIDGE(obj) \
     OBJECT_CHECK(PCIHostState, (obj), TYPE_PCI_HOST_BRIDGE)
-#define PCI_HOST_BRIDGE_CLASS(klass) \
-     OBJECT_CLASS_CHECK(PCIHostBridgeClass, (klass), TYPE_PCI_HOST_BRIDGE)
-#define PCI_HOST_BRIDGE_GET_CLASS(obj) \
-     OBJECT_GET_CLASS(PCIHostBridgeClass, (obj), TYPE_PCI_HOST_BRIDGE)
 
 struct PCIHostState {
     SysBusDevice busdev;
@@ -49,12 +63,6 @@ struct PCIHostState {
 
     QLIST_ENTRY(PCIHostState) next;
 };
-
-typedef struct PCIHostBridgeClass {
-    SysBusDeviceClass parent_class;
-
-    const char *(*root_bus_path)(PCIHostState *, PCIBus *);
-} PCIHostBridgeClass;
 
 /* common internal helpers for PCI/PCIe hosts, cut off overflows */
 void pci_host_config_write_common(PCIDevice *pci_dev, uint32_t addr,

@@ -58,10 +58,10 @@ static void q35_host_realize(DeviceState *dev, Error **errp)
     qdev_init_nofail(DEVICE(&s->mch));
 }
 
-static const char *q35_host_root_bus_path(PCIHostState *host_bridge,
+static const char *q35_host_root_bus_path(PCIHost *phb,
                                           PCIBus *rootbus)
 {
-    Q35PCIHost *s = Q35_HOST_DEVICE(host_bridge);
+    Q35PCIHost *s = Q35_HOST_DEVICE(phb);
 
      /* For backwards compat with old device paths */
     if (s->mch.short_root_bus) {
@@ -150,7 +150,7 @@ static Property q35_host_props[] = {
 static void q35_host_class_init(ObjectClass *klass, void *data)
 {
     DeviceClass *dc = DEVICE_CLASS(klass);
-    PCIHostBridgeClass *hc = PCI_HOST_BRIDGE_CLASS(klass);
+    PCIHostClass *hc = PCI_HOST_CLASS(klass);
 
     hc->root_bus_path = q35_host_root_bus_path;
     dc->realize = q35_host_realize;

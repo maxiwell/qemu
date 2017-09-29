@@ -191,16 +191,26 @@ const MemoryRegionOps pci_host_data_be_ops = {
 };
 
 static const TypeInfo pci_host_type_info = {
+    .name = TYPE_PCI_HOST,
+    .parent = TYPE_INTERFACE,
+    .class_size = sizeof(PCIHostClass),
+};
+
+static const TypeInfo pci_host_bridge_type_info = {
     .name = TYPE_PCI_HOST_BRIDGE,
     .parent = TYPE_SYS_BUS_DEVICE,
     .abstract = true,
-    .class_size = sizeof(PCIHostBridgeClass),
     .instance_size = sizeof(PCIHostState),
+    .interfaces = (InterfaceInfo[]) {
+        { TYPE_PCI_HOST },
+        { }
+    },
 };
 
 static void pci_host_register_types(void)
 {
     type_register_static(&pci_host_type_info);
+    type_register_static(&pci_host_bridge_type_info);
 }
 
 type_init(pci_host_register_types)

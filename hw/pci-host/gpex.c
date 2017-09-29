@@ -92,8 +92,8 @@ static void gpex_host_realize(DeviceState *dev, Error **errp)
     qdev_init_nofail(DEVICE(&s->gpex_root));
 }
 
-static const char *gpex_host_root_bus_path(PCIHostState *host_bridge,
-                                          PCIBus *rootbus)
+static const char *gpex_host_root_bus_path(PCIHost *phb,
+                                           PCIBus *rootbus)
 {
     return "0000:00";
 }
@@ -101,7 +101,7 @@ static const char *gpex_host_root_bus_path(PCIHostState *host_bridge,
 static void gpex_host_class_init(ObjectClass *klass, void *data)
 {
     DeviceClass *dc = DEVICE_CLASS(klass);
-    PCIHostBridgeClass *hc = PCI_HOST_BRIDGE_CLASS(klass);
+    PCIHostClass *hc = PCI_HOST_CLASS(klass);
 
     hc->root_bus_path = gpex_host_root_bus_path;
     dc->realize = gpex_host_realize;

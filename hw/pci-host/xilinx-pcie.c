@@ -137,7 +137,7 @@ static void xilinx_pcie_host_realize(DeviceState *dev, Error **errp)
     qdev_init_nofail(DEVICE(&s->root));
 }
 
-static const char *xilinx_pcie_host_root_bus_path(PCIHostState *host_bridge,
+static const char *xilinx_pcie_host_root_bus_path(PCIHost *phb,
                                                   PCIBus *rootbus)
 {
     return "0000:00";
@@ -167,7 +167,7 @@ static Property xilinx_pcie_host_props[] = {
 static void xilinx_pcie_host_class_init(ObjectClass *klass, void *data)
 {
     DeviceClass *dc = DEVICE_CLASS(klass);
-    PCIHostBridgeClass *hc = PCI_HOST_BRIDGE_CLASS(klass);
+    PCIHostClass *hc = PCI_HOST_CLASS(klass);
 
     hc->root_bus_path = xilinx_pcie_host_root_bus_path;
     dc->realize = xilinx_pcie_host_realize;

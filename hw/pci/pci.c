@@ -370,12 +370,13 @@ const char *pci_root_bus_path(PCIDevice *dev)
 {
     PCIBus *rootbus = pci_device_root_bus(dev);
     PCIHostState *host_bridge = PCI_HOST_BRIDGE(rootbus->qbus.parent);
-    PCIHostBridgeClass *hc = PCI_HOST_BRIDGE_GET_CLASS(host_bridge);
+    PCIHost *phb = PCI_HOST(host_bridge);
+    PCIHostClass *hc = PCI_HOST_GET_CLASS(phb);
 
     assert(host_bridge->bus == rootbus);
 
     if (hc->root_bus_path) {
-        return (*hc->root_bus_path)(host_bridge, rootbus);
+        return (*hc->root_bus_path)(phb, rootbus);
     }
 
     return rootbus->qbus.name;

@@ -849,10 +849,10 @@ static const TypeInfo igd_passthrough_i440fx_info = {
     .class_init    = igd_passthrough_i440fx_class_init,
 };
 
-static const char *i440fx_pcihost_root_bus_path(PCIHostState *host_bridge,
+static const char *i440fx_pcihost_root_bus_path(PCIHost *phb,
                                                 PCIBus *rootbus)
 {
-    I440FXState *s = I440FX_PCI_HOST_BRIDGE(host_bridge);
+    I440FXState *s = I440FX_PCI_HOST_BRIDGE(phb);
 
     /* For backwards compat with old device paths */
     if (s->short_root_bus) {
@@ -871,7 +871,7 @@ static Property i440fx_props[] = {
 static void i440fx_pcihost_class_init(ObjectClass *klass, void *data)
 {
     DeviceClass *dc = DEVICE_CLASS(klass);
-    PCIHostBridgeClass *hc = PCI_HOST_BRIDGE_CLASS(klass);
+    PCIHostClass *hc = PCI_HOST_CLASS(klass);
 
     hc->root_bus_path = i440fx_pcihost_root_bus_path;
     dc->realize = i440fx_pcihost_realize;
