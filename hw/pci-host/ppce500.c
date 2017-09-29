@@ -448,7 +448,7 @@ static int e500_pcihost_initfn(SysBusDevice *dev)
     PCIBus *b;
     int i;
 
-    h = PCI_HOST_BRIDGE(dev);
+    h = sysbus_pci_host_state(dev);
     s = PPC_E500_PCI_HOST_BRIDGE(dev);
 
     for (i = 0; i < ARRAY_SIZE(s->irq); i++) {
@@ -465,7 +465,7 @@ static int e500_pcihost_initfn(SysBusDevice *dev)
     /* PIO lives at the bottom of our bus space */
     memory_region_add_subregion_overlap(&s->busmem, 0, &s->pio, -2);
 
-    b = pci_register_root_bus(DEVICE(dev), NULL, mpc85xx_pci_set_irq,
+    b = pci_register_root_bus(DEVICE(dev), h, NULL, mpc85xx_pci_set_irq,
                               mpc85xx_pci_map_irq, s, &s->busmem, &s->pio,
                               PCI_DEVFN(s->first_slot, 0), 4, TYPE_PCI_BUS);
     h->bus = b;
@@ -541,7 +541,7 @@ static void e500_pcihost_class_init(ObjectClass *klass, void *data)
 
 static const TypeInfo e500_pcihost_info = {
     .name          = TYPE_PPC_E500_PCI_HOST_BRIDGE,
-    .parent        = TYPE_PCI_HOST_BRIDGE,
+    .parent        = TYPE_SYSBUS_PCI_HOST,
     .instance_size = sizeof(PPCE500PCIState),
     .class_init    = e500_pcihost_class_init,
 };

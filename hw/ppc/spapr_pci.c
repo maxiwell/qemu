@@ -78,7 +78,7 @@ PCIDevice *spapr_pci_find_dev(sPAPRMachineState *spapr, uint64_t buid,
                               uint32_t config_addr)
 {
     sPAPRPHBState *sphb = spapr_pci_find_phb(spapr, buid);
-    PCIHostState *phb = PCI_HOST_BRIDGE(sphb);
+    PCIHostState *phb = sysbus_pci_host_state(sphb);
     int bus_num = (config_addr >> 16) & 0xFF;
     int devfn = (config_addr >> 8) & 0xFF;
 
@@ -1514,7 +1514,7 @@ static void spapr_phb_realize(DeviceState *dev, Error **errp)
                                                   TYPE_SPAPR_MACHINE);
     SysBusDevice *s = SYS_BUS_DEVICE(dev);
     sPAPRPHBState *sphb = SPAPR_PCI_HOST_BRIDGE(s);
-    PCIHostState *phb = PCI_HOST_BRIDGE(s);
+    PCIHostState *phb = sysbus_pci_host_state(s);
     char *namebuf;
     int i;
     PCIBus *bus;
@@ -1620,7 +1620,7 @@ static void spapr_phb_realize(DeviceState *dev, Error **errp)
     memory_region_add_subregion(get_system_memory(), sphb->io_win_addr,
                                 &sphb->iowindow);
 
-    bus = pci_register_root_bus(dev, NULL,
+    bus = pci_register_root_bus(dev, phb, NULL,
                                 pci_spapr_set_irq, pci_spapr_map_irq, sphb,
                                 &sphb->memspace, &sphb->iospace,
                                 PCI_DEVFN(0, 0), PCI_NUM_PINS, TYPE_PCI_BUS);
@@ -1922,7 +1922,7 @@ static void spapr_phb_class_init(ObjectClass *klass, void *data)
 
 static const TypeInfo spapr_phb_info = {
     .name          = TYPE_SPAPR_PCI_HOST_BRIDGE,
-    .parent        = TYPE_PCI_HOST_BRIDGE,
+    .parent        = TYPE_SYSBUS_PCI_HOST,
     .instance_size = sizeof(sPAPRPHBState),
     .class_init    = spapr_phb_class_init,
     .interfaces    = (InterfaceInfo[]) {
@@ -1939,7 +1939,7 @@ PCIHostState *spapr_create_phb(sPAPRMachineState *spapr, int index)
     qdev_prop_set_uint32(dev, "index", index);
     qdev_init_nofail(dev);
 
-    return PCI_HOST_BRIDGE(dev);
+    return sysbus_pci_host_state(dev);
 }
 
 typedef struct sPAPRFDT {
@@ -2011,7 +2011,7 @@ static void spapr_phb_pci_enumerate_bridge(PCIBus *bus, PCIDevice *pdev,
 
 static void spapr_phb_pci_enumerate(sPAPRPHBState *phb)
 {
-    PCIBus *bus = PCI_HOST_BRIDGE(phb)->bus;
+    PCIBus *bus = sysbus_pci_host_state(phb)->bus;
     unsigned int bus_no = 0;
 
     pci_for_each_device(bus, pci_bus_num(bus),
@@ -2070,7 +2070,7 @@ int spapr_populate_pci_dt(sPAPRPHBState *phb,
                                 cpu_to_be32(0x0),
                                 cpu_to_be32(phb->numa_node)};
     sPAPRTCETable *tcet;
-    PCIBus *bus = PCI_HOST_BRIDGE(phb)->bus;
+    PCIBus *bus = sysbus_pci_host_state(phb)->bus;
     sPAPRFDT s_fdt;
 
     /* Start populating the FDT */
@@ -2225,7 +2225,7 @@ void spapr_pci_switch_vga(bool big_endian)
      * interrupt mode
      */
     QLIST_FOREACH(sphb, &spapr->phbs, list) {
-        BusState *bus = &PCI_HOST_BRIDGE(sphb)->bus->qbus;
+        BusState *bus = &sysbus_pci_host_state(sphb)->bus->qbus;
         qbus_walk_children(bus, spapr_switch_one_vga, NULL, NULL, NULL,
                            &big_endian);
     }

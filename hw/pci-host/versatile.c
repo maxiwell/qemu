@@ -390,7 +390,7 @@ static void pci_vpb_init(Object *obj)
 static void pci_vpb_realize(DeviceState *dev, Error **errp)
 {
     PCIVPBState *s = PCI_VPB(dev);
-    PCIHostState *h = PCI_HOST_BRIDGE(dev);
+    PCIHostState *h = sysbus_pci_host_state(dev);
     SysBusDevice *sbd = SYS_BUS_DEVICE(dev);
     pci_map_irq_fn mapfn;
     int i;
@@ -398,7 +398,7 @@ static void pci_vpb_realize(DeviceState *dev, Error **errp)
     memory_region_init(&s->pci_io_space, OBJECT(s), "pci_io", 1ULL << 32);
     memory_region_init(&s->pci_mem_space, OBJECT(s), "pci_mem", 1ULL << 32);
 
-    pci_root_bus_new_inplace(&s->pci_bus, sizeof(s->pci_bus), dev, "pci",
+    pci_root_bus_new_inplace(&s->pci_bus, sizeof(s->pci_bus), dev, h, "pci",
                              &s->pci_mem_space, &s->pci_io_space,
                              PCI_DEVFN(11, 0), TYPE_PCI_BUS);
     h->bus = &s->pci_bus;
@@ -510,7 +510,7 @@ static void pci_vpb_class_init(ObjectClass *klass, void *data)
 
 static const TypeInfo pci_vpb_info = {
     .name          = TYPE_VERSATILE_PCI,
-    .parent        = TYPE_PCI_HOST_BRIDGE,
+    .parent        = TYPE_SYSBUS_PCI_HOST,
     .instance_size = sizeof(PCIVPBState),
     .instance_init = pci_vpb_init,
     .class_init    = pci_vpb_class_init,

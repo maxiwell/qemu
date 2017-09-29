@@ -307,14 +307,14 @@ static int ppc4xx_pcihost_initfn(SysBusDevice *dev)
     PCIBus *b;
     int i;
 
-    h = PCI_HOST_BRIDGE(dev);
+    h = sysbus_pci_host_state(dev);
     s = PPC4xx_PCI_HOST_BRIDGE(dev);
 
     for (i = 0; i < ARRAY_SIZE(s->irq); i++) {
         sysbus_init_irq(dev, &s->irq[i]);
     }
 
-    b = pci_register_root_bus(DEVICE(dev), NULL, ppc4xx_pci_set_irq,
+    b = pci_register_root_bus(DEVICE(dev), h, NULL, ppc4xx_pci_set_irq,
                               ppc4xx_pci_map_irq, s->irq, get_system_memory(),
                               get_system_io(), 0, 4, TYPE_PCI_BUS);
     h->bus = b;
@@ -376,7 +376,7 @@ static void ppc4xx_pcihost_class_init(ObjectClass *klass, void *data)
 
 static const TypeInfo ppc4xx_pcihost_info = {
     .name          = TYPE_PPC4xx_PCI_HOST_BRIDGE,
-    .parent        = TYPE_PCI_HOST_BRIDGE,
+    .parent        = TYPE_SYSBUS_PCI_HOST,
     .instance_size = sizeof(PPC4xxPCIState),
     .class_init    = ppc4xx_pcihost_class_init,
 };

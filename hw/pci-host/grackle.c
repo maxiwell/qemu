@@ -73,7 +73,7 @@ PCIBus *pci_grackle_init(uint32_t base, qemu_irq *pic,
 
     dev = qdev_create(NULL, TYPE_GRACKLE_PCI_HOST_BRIDGE);
     s = SYS_BUS_DEVICE(dev);
-    phb = PCI_HOST_BRIDGE(dev);
+    phb = sysbus_pci_host_state(dev);
     d = GRACKLE_PCI_HOST_BRIDGE(dev);
 
     memory_region_init(&d->pci_mmio, OBJECT(s), "pci-mmio", 0x100000000ULL);
@@ -82,7 +82,7 @@ PCIBus *pci_grackle_init(uint32_t base, qemu_irq *pic,
     memory_region_add_subregion(address_space_mem, 0x80000000ULL,
                                 &d->pci_hole);
 
-    phb->bus = pci_register_root_bus(dev, NULL,
+    phb->bus = pci_register_root_bus(dev, phb, NULL,
                                      pci_grackle_set_irq,
                                      pci_grackle_map_irq,
                                      pic,
@@ -101,9 +101,7 @@ PCIBus *pci_grackle_init(uint32_t base, qemu_irq *pic,
 
 static int pci_grackle_init_device(SysBusDevice *dev)
 {
-    PCIHostState *phb;
-
-    phb = PCI_HOST_BRIDGE(dev);
+    PCIHostState *phb = sysbus_pci_host_state(dev);
 
     memory_region_init_io(&phb->conf_mem, OBJECT(dev), &pci_host_conf_le_ops,
                           dev, "pci-conf-idx", 0x1000);
@@ -159,7 +157,7 @@ static void pci_grackle_class_init(ObjectClass *klass, void *data)
 
 static const TypeInfo grackle_pci_host_info = {
     .name          = TYPE_GRACKLE_PCI_HOST_BRIDGE,
-    .parent        = TYPE_PCI_HOST_BRIDGE,
+    .parent        = TYPE_SYSBUS_PCI_HOST,
     .instance_size = sizeof(GrackleState),
     .class_init    = pci_grackle_class_init,
 };

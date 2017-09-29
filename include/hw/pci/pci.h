@@ -459,12 +459,14 @@ static inline bool pci_bus_extended_config_space(PCIBus *bus)
 }
 
 bool pci_bus_is_express(PCIBus *bus);
-void pci_root_bus_new_inplace(PCIBus *bus, size_t bus_size, DeviceState *parent,
+void pci_root_bus_new_inplace(PCIBus *bus, size_t bus_size,
+                              DeviceState *parent, PCIHostState *phb,
                               const char *name,
                               MemoryRegion *address_space_mem,
                               MemoryRegion *address_space_io,
                               uint8_t devfn_min, const char *typename);
-PCIBus *pci_root_bus_new(DeviceState *parent, const char *name,
+PCIBus *pci_root_bus_new(DeviceState *parent, PCIHostState *phb,
+                         const char *name,
                          MemoryRegion *address_space_mem,
                          MemoryRegion *address_space_io,
                          uint8_t devfn_min, const char *typename);
@@ -473,7 +475,8 @@ void pci_bus_irqs(PCIBus *bus, pci_set_irq_fn set_irq, pci_map_irq_fn map_irq,
 int pci_bus_get_irq_level(PCIBus *bus, int irq_num);
 /* 0 <= pin <= 3 0 = INTA, 1 = INTB, 2 = INTC, 3 = INTD */
 int pci_swizzle_map_irq_fn(PCIDevice *pci_dev, int pin);
-PCIBus *pci_register_root_bus(DeviceState *parent, const char *name,
+PCIBus *pci_register_root_bus(DeviceState *parent, PCIHostState *phb,
+                              const char *name,
                               pci_set_irq_fn set_irq, pci_map_irq_fn map_irq,
                               void *irq_opaque,
                               MemoryRegion *address_space_mem,

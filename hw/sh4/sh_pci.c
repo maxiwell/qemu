@@ -51,7 +51,7 @@ static void sh_pci_reg_write (void *p, hwaddr addr, uint64_t val,
                               unsigned size)
 {
     SHPCIState *pcic = p;
-    PCIHostState *phb = PCI_HOST_BRIDGE(pcic);
+    PCIHostState *phb = sysbus_pci_host_state(pcic);
 
     switch(addr) {
     case 0 ... 0xfc:
@@ -81,7 +81,7 @@ static uint64_t sh_pci_reg_read (void *p, hwaddr addr,
                                  unsigned size)
 {
     SHPCIState *pcic = p;
-    PCIHostState *phb = PCI_HOST_BRIDGE(pcic);
+    PCIHostState *phb = sysbus_pci_host_state(pcic);
 
     switch(addr) {
     case 0 ... 0xfc:
@@ -127,11 +127,11 @@ static int sh_pci_device_init(SysBusDevice *dev)
     int i;
 
     s = SH_PCI_HOST_BRIDGE(dev);
-    phb = PCI_HOST_BRIDGE(s);
+    phb = sysbus_pci_host_state(s);
     for (i = 0; i < 4; i++) {
         sysbus_init_irq(dev, &s->irq[i]);
     }
-    phb->bus = pci_register_root_bus(DEVICE(dev), "pci",
+    phb->bus = pci_register_root_bus(DEVICE(dev), phb, "pci",
                                      sh_pci_set_irq, sh_pci_map_irq,
                                      s->irq,
                                      get_system_memory(),
@@ -194,7 +194,7 @@ static void sh_pci_device_class_init(ObjectClass *klass, void *data)
 
 static const TypeInfo sh_pci_device_info = {
     .name          = TYPE_SH_PCI_HOST_BRIDGE,
-    .parent        = TYPE_PCI_HOST_BRIDGE,
+    .parent        = TYPE_SYSBUS_PCI_HOST,
     .instance_size = sizeof(SHPCIState),
     .class_init    = sh_pci_device_class_init,
 };

@@ -824,7 +824,7 @@ PCIBus *typhoon_init(ram_addr_t ram_size, ISABus **isa_bus,
     dev = qdev_create(NULL, TYPE_TYPHOON_PCI_HOST_BRIDGE);
 
     s = TYPHOON_PCI_HOST_BRIDGE(dev);
-    phb = PCI_HOST_BRIDGE(dev);
+    phb = sysbus_pci_host_state(dev);
 
     s->cchip.misc = 0x800000000ull; /* Revision: Typhoon.  */
     s->pchip.win[3].wba = 2;        /* Window 3 SG always enabled. */
@@ -881,7 +881,7 @@ PCIBus *typhoon_init(ram_addr_t ram_size, ISABus **isa_bus,
     memory_region_add_subregion(addr_space, 0x801fc000000ULL,
                                 &s->pchip.reg_io);
 
-    b = pci_register_root_bus(dev, "pci",
+    b = pci_register_root_bus(dev, phb, "pci",
                               typhoon_set_irq, sys_map_irq, s,
                               &s->pchip.reg_mem, &s->pchip.reg_io,
                               0, 64, TYPE_PCI_BUS);
@@ -946,7 +946,7 @@ static void typhoon_pcihost_class_init(ObjectClass *klass, void *data)
 
 static const TypeInfo typhoon_pcihost_info = {
     .name          = TYPE_TYPHOON_PCI_HOST_BRIDGE,
-    .parent        = TYPE_PCI_HOST_BRIDGE,
+    .parent        = TYPE_SYSBUS_PCI_HOST,
     .instance_size = sizeof(TyphoonState),
     .class_init    = typhoon_pcihost_class_init,
 };

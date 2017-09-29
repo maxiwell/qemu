@@ -105,7 +105,7 @@ static void xilinx_pcie_set_irq(void *opaque, int irq_num, int level)
 
 static void xilinx_pcie_host_realize(DeviceState *dev, Error **errp)
 {
-    PCIHostState *pci = PCI_HOST_BRIDGE(dev);
+    PCIHostState *pci = sysbus_pci_host_state(dev);
     XilinxPCIEHost *s = XILINX_PCIE_HOST(dev);
     SysBusDevice *sbd = SYS_BUS_DEVICE(dev);
     PCIExpressHost *pex = PCIE_HOST_BRIDGE(dev);
@@ -129,7 +129,7 @@ static void xilinx_pcie_host_realize(DeviceState *dev, Error **errp)
     sysbus_init_mmio(sbd, &pex->mmio);
     sysbus_init_mmio(sbd, &s->mmio);
 
-    pci->bus = pci_register_root_bus(dev, s->name, xilinx_pcie_set_irq,
+    pci->bus = pci_register_root_bus(dev, pci, s->name, xilinx_pcie_set_irq,
                                      pci_swizzle_map_irq_fn, s, &s->mmio,
                                      &s->io, 0, 4, TYPE_PCIE_BUS);
 

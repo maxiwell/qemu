@@ -548,12 +548,12 @@ static int s390_pcihost_init(SysBusDevice *dev)
 {
     PCIBus *b;
     BusState *bus;
-    PCIHostState *phb = PCI_HOST_BRIDGE(dev);
+    PCIHostState *phb = sysbus_pci_host_state(dev);
     S390pciState *s = S390_PCI_HOST_BRIDGE(dev);
 
     DPRINTF("host_init\n");
 
-    b = pci_register_root_bus(DEVICE(dev), NULL,
+    b = pci_register_root_bus(DEVICE(dev), phb, NULL,
                               s390_pci_set_irq, s390_pci_map_irq, NULL,
                               get_system_memory(), get_system_io(), 0, 64,
                               TYPE_PCI_BUS);
@@ -873,7 +873,7 @@ static void s390_pcihost_class_init(ObjectClass *klass, void *data)
 
 static const TypeInfo s390_pcihost_info = {
     .name          = TYPE_S390_PCI_HOST_BRIDGE,
-    .parent        = TYPE_PCI_HOST_BRIDGE,
+    .parent        = TYPE_SYSBUS_PCI_HOST,
     .instance_size = sizeof(S390pciState),
     .class_init    = s390_pcihost_class_init,
     .interfaces = (InterfaceInfo[]) {

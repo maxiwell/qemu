@@ -1060,7 +1060,7 @@ static void create_pcie(const VirtMachineState *vms, qemu_irq *pic)
         gpex_set_irq_num(GPEX_HOST(dev), i, irq + i);
     }
 
-    pci = PCI_HOST_BRIDGE(dev);
+    pci = sysbus_pci_host_state(dev);
     if (pci->bus) {
         for (i = 0; i < nb_nics; i++) {
             NICInfo *nd = &nd_table[i];

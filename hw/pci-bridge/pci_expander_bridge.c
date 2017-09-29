@@ -114,14 +114,14 @@ static char *pxb_host_ofw_unit_address(const SysBusDevice *dev)
     const PCIHostState *main_host;
     const SysBusDevice *main_host_sbd;
 
-    pxb_host = PCI_HOST_BRIDGE(dev);
+    pxb_host = sysbus_pci_host_state(dev);
     pxb_bus = pxb_host->bus;
     pxb_dev = convert_to_pxb(pxb_bus->parent_dev);
     position = g_list_index(pxb_dev_list, pxb_dev);
     assert(position >= 0);
 
     pxb_dev_base = DEVICE(pxb_dev);
-    main_host = PCI_HOST_BRIDGE(pxb_dev_base->parent_bus->parent);
+    main_host = sysbus_pci_host_state(pxb_dev_base->parent_bus->parent);
     main_host_sbd = SYS_BUS_DEVICE(main_host);
 
     if (main_host_sbd->num_mmio > 0) {
@@ -150,7 +150,7 @@ static void pxb_host_class_init(ObjectClass *class, void *data)
 
 static const TypeInfo pxb_host_info = {
     .name          = TYPE_PXB_HOST,
-    .parent        = TYPE_PCI_HOST_BRIDGE,
+    .parent        = TYPE_SYSBUS_PCI_HOST,
     .class_init    = pxb_host_class_init,
 };
 
@@ -207,6 +207,7 @@ static void pxb_dev_realize_common(PCIDevice *dev, bool pcie, Error **errp)
 {
     PXBDev *pxb = convert_to_pxb(dev);
     DeviceState *ds, *bds = NULL;
+    PCIHostState *phb;
     PCIBus *bus;
     const char *dev_name = NULL;
     Error *local_err = NULL;
@@ -222,10 +223,13 @@ static void pxb_dev_realize_common(PCIDevice *dev, bool pcie, Error **errp)
     }
 
     ds = qdev_create(NULL, TYPE_PXB_HOST);
+    phb = sysbus_pci_host_state(ds);
     if (pcie) {
-        bus = pci_root_bus_new(ds, dev_name, NULL, NULL, 0, TYPE_PXB_PCIE_BUS);
+        bus = pci_root_bus_new(ds, phb, dev_name, NULL, NULL, 0,
+                               TYPE_PXB_PCIE_BUS);
     } else {
-        bus = pci_root_bus_new(ds, "pxb-internal", NULL, NULL, 0, TYPE_PXB_BUS);
+        bus = pci_root_bus_new(ds, phb, "pxb-internal", NULL, NULL, 0,
+                               TYPE_PXB_BUS);
         bds = qdev_create(BUS(bus), "pci-bridge");
         bds->id = dev_name;
         qdev_prop_set_uint8(bds, PCI_BRIDGE_DEV_PROP_CHASSIS_NR, pxb->bus_nr);
@@ -237,7 +241,7 @@ static void pxb_dev_realize_common(PCIDevice *dev, bool pcie, Error **errp)
     bus->address_space_io = dev->bus->address_space_io;
     bus->map_irq = pxb_map_irq_fn;
 
-    PCI_HOST_BRIDGE(ds)->bus = bus;
+    sysbus_pci_host_state(ds)->bus = bus;
 
     pxb_register_bus(dev, bus, &local_err);
     if (local_err) {

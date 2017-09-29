@@ -179,7 +179,7 @@ static void pc_q35_init(MachineState *machine)
                             PCI_HOST_ABOVE_4G_MEM_SIZE, NULL);
     /* pci */
     qdev_init_nofail(DEVICE(q35_host));
-    phb = PCI_HOST_BRIDGE(q35_host);
+    phb = sysbus_pci_host_state(q35_host);
     host_bus = phb->bus;
     /* create ISA bus */
     lpc = pci_create_simple_multifunction(host_bus, PCI_DEVFN(ICH9_LPC_DEV,

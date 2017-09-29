@@ -196,8 +196,8 @@ static const TypeInfo pci_host_type_info = {
     .class_size = sizeof(PCIHostClass),
 };
 
-static const TypeInfo pci_host_bridge_type_info = {
-    .name = TYPE_PCI_HOST_BRIDGE,
+static const TypeInfo sysbus_phb_info = {
+    .name = TYPE_SYSBUS_PCI_HOST,
     .parent = TYPE_SYS_BUS_DEVICE,
     .abstract = true,
     .instance_size = sizeof(PCIHostState),
@@ -210,7 +210,7 @@ static const TypeInfo pci_host_bridge_type_info = {
 static void pci_host_register_types(void)
 {
     type_register_static(&pci_host_type_info);
-    type_register_static(&pci_host_bridge_type_info);
+    type_register_static(&sysbus_phb_info);
 }
 
 type_init(pci_host_register_types)

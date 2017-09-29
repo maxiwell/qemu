@@ -218,15 +218,15 @@ static void acpi_get_misc_info(AcpiMiscInfo *info)
  */
 static Object *acpi_get_i386_pci_host(void)
 {
-    PCIHostState *host;
+    SysBusPCIHostState *host;
 
-    host = OBJECT_CHECK(PCIHostState,
+    host = OBJECT_CHECK(SysBusPCIHostState,
                         object_resolve_path("/machine/i440fx", NULL),
-                        TYPE_PCI_HOST_BRIDGE);
+                        TYPE_SYSBUS_PCI_HOST);
     if (!host) {
-        host = OBJECT_CHECK(PCIHostState,
+        host = OBJECT_CHECK(SysBusPCIHostState,
                             object_resolve_path("/machine/q35", NULL),
-                            TYPE_PCI_HOST_BRIDGE);
+                            TYPE_SYSBUS_PCI_HOST);
     }
 
     return OBJECT(host);
@@ -1974,7 +1974,8 @@ build_dsdt(GArray *table_data, BIOSLinker *linker,
             }
 
             aml_append(dev, build_prt(false));
-            crs = build_crs(PCI_HOST_BRIDGE(BUS(bus)->parent), &crs_range_set);
+            crs = build_crs(sysbus_pci_host_state(BUS(bus)->parent),
+                            &crs_range_set);
             aml_append(dev, aml_name_decl("_CRS", crs));
             aml_append(scope, dev);
             aml_append(dsdt, scope);
@@ -2195,7 +2196,7 @@ build_dsdt(GArray *table_data, BIOSLinker *linker,
 
         pci_host = acpi_get_i386_pci_host();
         if (pci_host) {
-            bus = PCI_HOST_BRIDGE(pci_host)->bus;
+            bus = sysbus_pci_host_state(pci_host)->bus;
         }
 
         if (bus) {

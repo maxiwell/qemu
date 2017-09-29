@@ -39,7 +39,7 @@
 
 static void q35_host_realize(DeviceState *dev, Error **errp)
 {
-    PCIHostState *pci = PCI_HOST_BRIDGE(dev);
+    PCIHostState *pci = sysbus_pci_host_state(dev);
     Q35PCIHost *s = Q35_HOST_DEVICE(dev);
     SysBusDevice *sbd = SYS_BUS_DEVICE(dev);
 
@@ -49,7 +49,7 @@ static void q35_host_realize(DeviceState *dev, Error **errp)
     sysbus_add_io(sbd, MCH_HOST_BRIDGE_CONFIG_DATA, &pci->data_mem);
     sysbus_init_ioports(sbd, MCH_HOST_BRIDGE_CONFIG_DATA, 4);
 
-    pci->bus = pci_root_bus_new(DEVICE(s), "pcie.0",
+    pci->bus = pci_root_bus_new(DEVICE(s), sysbus_pci_host_state(sbd), "pcie.0",
                                 s->mch.pci_address_space,
                                 s->mch.address_space_io,
                                 0, TYPE_PCIE_BUS);
@@ -104,7 +104,7 @@ static void q35_host_get_pci_hole64_start(Object *obj, Visitor *v,
                                           const char *name, void *opaque,
                                           Error **errp)
 {
-    PCIHostState *h = PCI_HOST_BRIDGE(obj);
+    PCIHostState *h = sysbus_pci_host_state(obj);
     Range w64;
     uint64_t value;
 
@@ -117,7 +117,7 @@ static void q35_host_get_pci_hole64_end(Object *obj, Visitor *v,
                                         const char *name, void *opaque,
                                         Error **errp)
 {
-    PCIHostState *h = PCI_HOST_BRIDGE(obj);
+    PCIHostState *h = sysbus_pci_host_state(obj);
     Range w64;
     uint64_t value;
 
@@ -164,7 +164,7 @@ static void q35_host_class_init(ObjectClass *klass, void *data)
 static void q35_host_initfn(Object *obj)
 {
     Q35PCIHost *s = Q35_HOST_DEVICE(obj);
-    PCIHostState *phb = PCI_HOST_BRIDGE(obj);
+    PCIHostState *phb = sysbus_pci_host_state(obj);
 
     memory_region_init_io(&phb->conf_mem, obj, &pci_host_conf_le_ops, phb,
                           "pci-conf-idx", 4);

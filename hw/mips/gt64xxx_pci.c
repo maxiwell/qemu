@@ -381,7 +381,7 @@ static void gt64120_writel (void *opaque, hwaddr addr,
                             uint64_t val, unsigned size)
 {
     GT64120State *s = opaque;
-    PCIHostState *phb = PCI_HOST_BRIDGE(s);
+    PCIHostState *phb = sysbus_pci_host_state(s);
     uint32_t saddr;
 
     if (!(s->regs[GT_CPU] & 0x00001000))
@@ -665,7 +665,7 @@ static uint64_t gt64120_readl (void *opaque,
                                hwaddr addr, unsigned size)
 {
     GT64120State *s = opaque;
-    PCIHostState *phb = PCI_HOST_BRIDGE(s);
+    PCIHostState *phb = sysbus_pci_host_state(s);
     uint32_t val;
     uint32_t saddr;
 
@@ -1168,10 +1168,10 @@ PCIBus *gt64120_register(qemu_irq *pic)
 
     dev = qdev_create(NULL, TYPE_GT64120_PCI_HOST_BRIDGE);
     d = GT64120_PCI_HOST_BRIDGE(dev);
-    phb = PCI_HOST_BRIDGE(dev);
+    phb = sysbus_pci_host_state(dev);
     memory_region_init(&d->pci0_mem, OBJECT(dev), "pci0-mem", UINT32_MAX);
     address_space_init(&d->pci0_mem_as, &d->pci0_mem, "pci0-mem");
-    phb->bus = pci_register_root_bus(dev, "pci",
+    phb->bus = pci_register_root_bus(dev, phb, "pci",
                                      gt64120_pci_set_irq, gt64120_pci_map_irq,
                                      pic,
                                      &d->pci0_mem,
@@ -1249,7 +1249,7 @@ static void gt64120_class_init(ObjectClass *klass, void *data)
 
 static const TypeInfo gt64120_info = {
     .name          = TYPE_GT64120_PCI_HOST_BRIDGE,
-    .parent        = TYPE_PCI_HOST_BRIDGE,
+    .parent        = TYPE_SYSBUS_PCI_HOST,
     .instance_size = sizeof(GT64120State),
     .class_init    = gt64120_class_init,
 };

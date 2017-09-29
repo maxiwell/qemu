@@ -577,7 +577,7 @@ static void apb_pci_config_write(void *opaque, hwaddr addr,
                                  uint64_t val, unsigned size)
 {
     APBState *s = opaque;
-    PCIHostState *phb = PCI_HOST_BRIDGE(s);
+    PCIHostState *phb = sysbus_pci_host_state(s);
 
     APB_DPRINTF("%s: addr " TARGET_FMT_plx " val %" PRIx64 "\n", __func__, addr, val);
     pci_data_write(phb->bus, addr, val, size);
@@ -588,7 +588,7 @@ static uint64_t apb_pci_config_read(void *opaque, hwaddr addr,
 {
     uint32_t ret;
     APBState *s = opaque;
-    PCIHostState *phb = PCI_HOST_BRIDGE(s);
+    PCIHostState *phb = sysbus_pci_host_state(s);
 
     ret = pci_data_read(phb->bus, addr, size);
     APB_DPRINTF("%s: addr " TARGET_FMT_plx " -> %x\n", __func__, addr, ret);
@@ -687,8 +687,8 @@ PCIBus *pci_apb_init(hwaddr special_base,
     /* Ultrasparc PBM main bus */
     dev = qdev_create(NULL, TYPE_APB);
     d = APB_DEVICE(dev);
-    phb = PCI_HOST_BRIDGE(dev);
-    phb->bus = pci_register_root_bus(DEVICE(phb), "pci",
+    phb = sysbus_pci_host_state(dev);
+    phb->bus = pci_register_root_bus(DEVICE(phb), phb, "pci",
                                      pci_apb_set_irq, pci_pbm_map_irq, d,
                                      &d->pci_mmio,
                                      get_system_io(),
@@ -853,7 +853,7 @@ static void pbm_host_class_init(ObjectClass *klass, void *data)
 
 static const TypeInfo pbm_host_info = {
     .name          = TYPE_APB,
-    .parent        = TYPE_PCI_HOST_BRIDGE,
+    .parent        = TYPE_SYSBUS_PCI_HOST,
     .instance_size = sizeof(APBState),
     .class_init    = pbm_host_class_init,
 };

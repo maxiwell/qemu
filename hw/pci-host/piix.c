@@ -242,7 +242,7 @@ static void i440fx_pcihost_get_pci_hole64_start(Object *obj, Visitor *v,
                                                 const char *name,
                                                 void *opaque, Error **errp)
 {
-    PCIHostState *h = PCI_HOST_BRIDGE(obj);
+    PCIHostState *h = sysbus_pci_host_state(obj);
     Range w64;
     uint64_t value;
 
@@ -255,7 +255,7 @@ static void i440fx_pcihost_get_pci_hole64_end(Object *obj, Visitor *v,
                                               const char *name, void *opaque,
                                               Error **errp)
 {
-    PCIHostState *h = PCI_HOST_BRIDGE(obj);
+    PCIHostState *h = sysbus_pci_host_state(obj);
     Range w64;
     uint64_t value;
 
@@ -266,7 +266,7 @@ static void i440fx_pcihost_get_pci_hole64_end(Object *obj, Visitor *v,
 
 static void i440fx_pcihost_initfn(Object *obj)
 {
-    PCIHostState *s = PCI_HOST_BRIDGE(obj);
+    PCIHostState *s = sysbus_pci_host_state(obj);
 
     memory_region_init_io(&s->conf_mem, obj, &pci_host_conf_le_ops, s,
                           "pci-conf-idx", 4);
@@ -292,7 +292,7 @@ static void i440fx_pcihost_initfn(Object *obj)
 
 static void i440fx_pcihost_realize(DeviceState *dev, Error **errp)
 {
-    PCIHostState *s = PCI_HOST_BRIDGE(dev);
+    PCIHostState *s = sysbus_pci_host_state(dev);
     SysBusDevice *sbd = SYS_BUS_DEVICE(dev);
 
     sysbus_add_io(sbd, 0xcf8, &s->conf_mem);
@@ -333,8 +333,8 @@ PCIBus *i440fx_init(const char *host_type, const char *pci_type,
     I440FXState *i440fx;
 
     dev = qdev_create(NULL, host_type);
-    s = PCI_HOST_BRIDGE(dev);
-    b = pci_root_bus_new(dev, NULL, pci_address_space,
+    s = sysbus_pci_host_state(dev);
+    b = pci_root_bus_new(dev, s, NULL, pci_address_space,
                          address_space_io, 0, TYPE_PCI_BUS);
     s->bus = b;
     object_property_add_child(qdev_get_machine(), "i440fx", OBJECT(dev), NULL);
@@ -416,10 +416,11 @@ PCIBus *i440fx_init(const char *host_type, const char *pci_type,
 
 PCIBus *find_i440fx(void)
 {
-    PCIHostState *s = OBJECT_CHECK(PCIHostState,
-                                   object_resolve_path("/machine/i440fx", NULL),
-                                   TYPE_PCI_HOST_BRIDGE);
-    return s ? s->bus : NULL;
+    SysBusPCIHostState *s = OBJECT_CHECK(SysBusPCIHostState,
+                                         object_resolve_path("/machine/i440fx",
+                                                             NULL),
+                                         TYPE_SYSBUS_PCI_HOST);
+    return s ? sysbus_pci_host_state(s)->bus : NULL;
 }
 
 /* PIIX3 PCI to ISA bridge */
@@ -883,7 +884,7 @@ static void i440fx_pcihost_class_init(ObjectClass *klass, void *data)
 
 static const TypeInfo i440fx_pcihost_info = {
     .name          = TYPE_I440FX_PCI_HOST_BRIDGE,
-    .parent        = TYPE_PCI_HOST_BRIDGE,
+    .parent        = TYPE_SYSBUS_PCI_HOST,
     .instance_size = sizeof(I440FXState),
     .instance_init = i440fx_pcihost_initfn,
     .class_init    = i440fx_pcihost_class_init,

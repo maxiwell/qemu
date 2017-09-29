@@ -94,7 +94,7 @@ int spapr_phb_vfio_eeh_set_option(sPAPRPHBState *sphb,
          * instead of PE. We need check the validity of the PCI
          * device address.
          */
-        phb = PCI_HOST_BRIDGE(sphb);
+        phb = sysbus_pci_host_state(sphb);
         pdev = pci_find_device(phb->bus,
                                (addr >> 16) & 0xFF, (addr >> 8) & 0xFF);
         if (!pdev || !object_dynamic_cast(OBJECT(pdev), "vfio-pci")) {
@@ -173,7 +173,7 @@ static void spapr_phb_vfio_eeh_clear_bus_msix(PCIBus *bus, void *opaque)
 
 static void spapr_phb_vfio_eeh_pre_reset(sPAPRPHBState *sphb)
 {
-       PCIHostState *phb = PCI_HOST_BRIDGE(sphb);
+       PCIHostState *phb = sysbus_pci_host_state(sphb);
 
        pci_for_each_bus(phb->bus, spapr_phb_vfio_eeh_clear_bus_msix, NULL);
 }

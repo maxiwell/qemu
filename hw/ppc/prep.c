@@ -504,7 +504,7 @@ static void ppc_prep_init(MachineState *machine)
     uint32_t kernel_base, initrd_base;
     long kernel_size, initrd_size;
     DeviceState *dev;
-    PCIHostState *pcihost;
+    SysBusDevice *pcihost;
     PCIBus *pci_bus;
     PCIDevice *pci;
     ISABus *isa_bus;
@@ -589,7 +589,7 @@ static void ppc_prep_init(MachineState *machine)
     }
     qdev_prop_set_string(dev, "bios-name", bios_name);
     qdev_prop_set_uint32(dev, "elf-machine", PPC_ELF_MACHINE);
-    pcihost = PCI_HOST_BRIDGE(dev);
+    pcihost = SYS_BUS_DEVICE(dev);
     object_property_add_child(qdev_get_machine(), "raven", OBJECT(dev), NULL);
     qdev_init_nofail(dev);
     pci_bus = (PCIBus *)qdev_get_child_bus(dev, "pci.0");
@@ -604,10 +604,10 @@ static void ppc_prep_init(MachineState *machine)
     cpu = POWERPC_CPU(first_cpu);
     qdev_connect_gpio_out(&pci->qdev, 0,
                           cpu->env.irq_inputs[PPC6xx_INPUT_INT]);
-    sysbus_connect_irq(&pcihost->busdev, 0, qdev_get_gpio_in(&pci->qdev, 9));
-    sysbus_connect_irq(&pcihost->busdev, 1, qdev_get_gpio_in(&pci->qdev, 11));
-    sysbus_connect_irq(&pcihost->busdev, 2, qdev_get_gpio_in(&pci->qdev, 9));
-    sysbus_connect_irq(&pcihost->busdev, 3, qdev_get_gpio_in(&pci->qdev, 11));
+    sysbus_connect_irq(pcihost, 0, qdev_get_gpio_in(&pci->qdev, 9));
+    sysbus_connect_irq(pcihost, 1, qdev_get_gpio_in(&pci->qdev, 11));
+    sysbus_connect_irq(pcihost, 2, qdev_get_gpio_in(&pci->qdev, 9));
+    sysbus_connect_irq(pcihost, 3, qdev_get_gpio_in(&pci->qdev, 11));
     isa_bus = ISA_BUS(qdev_get_child_bus(DEVICE(pci), "isa.0"));
 
     /* Super I/O (parallel + serial ports) */

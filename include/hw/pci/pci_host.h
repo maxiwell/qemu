@@ -30,6 +30,10 @@
 
 #include "hw/sysbus.h"
 
+/*
+ * Structures for all PCI host bridges
+ */
+
 #define TYPE_PCI_HOST "pci-host"
 #define PCI_HOST(obj)                                           \
     OBJECT_CHECK(PCIHost, (obj), TYPE_PCI_HOST)
@@ -48,13 +52,7 @@ typedef struct PCIHostClass {
     const char *(*root_bus_path)(PCIHost *, PCIBus *);
 } PCIHostClass;
 
-#define TYPE_PCI_HOST_BRIDGE "pci-host-bridge"
-#define PCI_HOST_BRIDGE(obj) \
-    OBJECT_CHECK(PCIHostState, (obj), TYPE_PCI_HOST_BRIDGE)
-
 struct PCIHostState {
-    SysBusDevice busdev;
-
     MemoryRegion conf_mem;
     MemoryRegion data_mem;
     MemoryRegion mmcfg;
@@ -77,5 +75,21 @@ extern const MemoryRegionOps pci_host_conf_le_ops;
 extern const MemoryRegionOps pci_host_conf_be_ops;
 extern const MemoryRegionOps pci_host_data_le_ops;
 extern const MemoryRegionOps pci_host_data_be_ops;
+
+/*
+ * Structures for the default SysBus based host bridge
+ */
+
+#define TYPE_SYSBUS_PCI_HOST "pci-host-bridge"
+#define SYSBUS_PCI_HOST(obj) \
+    OBJECT_CHECK(SysBusPCIHostState, (obj), TYPE_SYSBUS_PCI_HOST)
+
+typedef struct SysBusPCIHostState {
+    SysBusDevice busdev;
+
+    PCIHostState phb;
+} SysBusPCIHostState;
+
+#define sysbus_pci_host_state(obj) (&SYSBUS_PCI_HOST(obj)->phb)
 
 #endif /* PCI_HOST_H */

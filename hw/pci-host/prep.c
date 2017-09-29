@@ -87,7 +87,7 @@ static void raven_pci_io_write(void *opaque, hwaddr addr,
                                uint64_t val, unsigned int size)
 {
     PREPPCIState *s = opaque;
-    PCIHostState *phb = PCI_HOST_BRIDGE(s);
+    PCIHostState *phb = sysbus_pci_host_state(s);
     pci_data_write(phb->bus, raven_pci_io_config(addr), val, size);
 }
 
@@ -95,7 +95,7 @@ static uint64_t raven_pci_io_read(void *opaque, hwaddr addr,
                                   unsigned int size)
 {
     PREPPCIState *s = opaque;
-    PCIHostState *phb = PCI_HOST_BRIDGE(s);
+    PCIHostState *phb = sysbus_pci_host_state(s);
     return pci_data_read(phb->bus, raven_pci_io_config(addr), size);
 }
 
@@ -215,7 +215,7 @@ static void raven_change_gpio(void *opaque, int n, int level)
 static void raven_pcihost_realizefn(DeviceState *d, Error **errp)
 {
     SysBusDevice *dev = SYS_BUS_DEVICE(d);
-    PCIHostState *h = PCI_HOST_BRIDGE(dev);
+    PCIHostState *h = sysbus_pci_host_state(dev);
     PREPPCIState *s = RAVEN_PCI_HOST_BRIDGE(dev);
     MemoryRegion *address_space_mem = get_system_memory();
     int i;
@@ -252,7 +252,7 @@ static void raven_pcihost_realizefn(DeviceState *d, Error **errp)
 
 static void raven_pcihost_initfn(Object *obj)
 {
-    PCIHostState *h = PCI_HOST_BRIDGE(obj);
+    PCIHostState *h = sysbus_pci_host_state(obj);
     PREPPCIState *s = RAVEN_PCI_HOST_BRIDGE(obj);
     MemoryRegion *address_space_mem = get_system_memory();
     DeviceState *pci_dev;
@@ -268,8 +268,8 @@ static void raven_pcihost_initfn(Object *obj)
     memory_region_add_subregion_overlap(address_space_mem, 0x80000000,
                                         &s->pci_io_non_contiguous, 1);
     memory_region_add_subregion(address_space_mem, 0xc0000000, &s->pci_memory);
-    pci_root_bus_new_inplace(&s->pci_bus, sizeof(s->pci_bus), DEVICE(obj), NULL,
-                             &s->pci_memory, &s->pci_io, 0, TYPE_PCI_BUS);
+    pci_root_bus_new_inplace(&s->pci_bus, sizeof(s->pci_bus), DEVICE(obj), h,
+                             NULL, &s->pci_memory, &s->pci_io, 0, TYPE_PCI_BUS);
 
     /* Bus master address space */
     memory_region_init(&s->bm, obj, "bm-raven", UINT32_MAX);
@@ -396,7 +396,7 @@ static void raven_pcihost_class_init(ObjectClass *klass, void *data)
 
 static const TypeInfo raven_pcihost_info = {
     .name = TYPE_RAVEN_PCI_HOST_BRIDGE,
-    .parent = TYPE_PCI_HOST_BRIDGE,
+    .parent = TYPE_SYSBUS_PCI_HOST,
     .instance_size = sizeof(PREPPCIState),
     .instance_init = raven_pcihost_initfn,
     .class_init = raven_pcihost_class_init,
