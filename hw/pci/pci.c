@@ -329,9 +329,9 @@ static void pcibus_reset(BusState *qbus)
     }
 }
 
-static void pci_host_bus_register(PCIHostState *host_bridge)
+static void pci_host_bus_register(PCIHostState *phb)
 {
-    QLIST_INSERT_HEAD(&pci_host_bridges, host_bridge, next);
+    QLIST_INSERT_HEAD(&pci_host_bridges, phb, next);
 }
 
 PCIBus *pci_find_primary_bus(void)
@@ -367,7 +367,7 @@ PCIBus *pci_device_root_bus(const PCIDevice *d)
 const char *pci_root_bus_path(PCIDevice *dev)
 {
     PCIBus *rootbus = pci_device_root_bus(dev);
-    PCIHost *phb = PCI_HOST(rootbus->qbus.parent);
+    PCIHost *phb = PCI_HOST(BUS(rootbus)->parent);
     PCIHostClass *hc = PCI_HOST_GET_CLASS(phb);
 
     if (hc->root_bus_path) {
@@ -400,20 +400,18 @@ bool pci_bus_is_express(PCIBus *bus)
     return object_dynamic_cast(OBJECT(bus), TYPE_PCIE_BUS);
 }
 
-void pci_root_bus_new_inplace(PCIBus *bus, size_t bus_size,
-                              DeviceState *parent, PCIHostState *phb,
+void pci_root_bus_new_inplace(PCIBus *bus, size_t bus_size, DeviceState *parent,
                               const char *name,
                               MemoryRegion *address_space_mem,
                               MemoryRegion *address_space_io,
                               uint8_t devfn_min, const char *typename)
 {
     qbus_create_inplace(bus, bus_size, typename, parent, name);
-    pci_root_bus_init(bus, phb, address_space_mem, address_space_io,
+    pci_root_bus_init(bus, parent, address_space_mem, address_space_io,
                       devfn_min);
 }
 
-PCIBus *pci_root_bus_new(DeviceState *parent, PCIHostState *phb,
-                         const char *name,
+PCIBus *pci_root_bus_new(DeviceState *parent, const char *name,
                          MemoryRegion *address_space_mem,
                          MemoryRegion *address_space_io,
                          uint8_t devfn_min, const char *typename)
@@ -421,8 +419,7 @@ PCIBus *pci_root_bus_new(DeviceState *parent, PCIHostState *phb,
     PCIBus *bus;
 
     bus = PCI_BUS(qbus_create(typename, parent, name));
-    pci_root_bus_init(bus, phb, address_space_mem, address_space_io,
-                      devfn_min);
+    pci_root_bus_init(bus, parent, address_space_mem, address_space_io, devfn_min);
     return bus;
 }
 
@@ -436,8 +433,7 @@ void pci_bus_irqs(PCIBus *bus, pci_set_irq_fn set_irq, pci_map_irq_fn map_irq,
     bus->irq_count = g_malloc0(nirq * sizeof(bus->irq_count[0]));
 }
 
-PCIBus *pci_register_root_bus(DeviceState *parent, PCIHostState *phb,
-                              const char *name,
+PCIBus *pci_register_root_bus(DeviceState *parent, const char *name,
                               pci_set_irq_fn set_irq, pci_map_irq_fn map_irq,
                               void *irq_opaque,
                               MemoryRegion *address_space_mem,
@@ -447,7 +443,7 @@ PCIBus *pci_register_root_bus(DeviceState *parent, PCIHostState *phb,
 {
     PCIBus *bus;
 
-    bus = pci_root_bus_new(parent, phb, name, address_space_mem,
+    bus = pci_root_bus_new(parent, name, address_space_mem,
                            address_space_io, devfn_min, typename);
     pci_bus_irqs(bus, set_irq, map_irq, irq_opaque, nirq);
     return bus;
@@ -1806,7 +1802,7 @@ static PciInfo *qmp_query_pci_bus(PCIBus *bus, int bus_num)
 PciInfoList *qmp_query_pci(Error **errp)
 {
     PciInfoList *info, *head = NULL, *cur_item = NULL;
-    PCIHostState *host_bridge;
+    SysBusPCIHostState *host_bridge;
 
     QLIST_FOREACH(host_bridge, &pci_host_bridges, next) {
         info = g_malloc0(sizeof(*info));
@@ -2511,7 +2507,7 @@ static int pci_qdev_find_recursive(PCIBus *bus,
 
 int pci_qdev_find_device(const char *id, PCIDevice **pdev)
 {
-    PCIHostState *host_bridge;
+    SysBusPCIHostState *host_bridge;
     int rc = -ENODEV;
 
     QLIST_FOREACH(host_bridge, &pci_host_bridges, next) {
