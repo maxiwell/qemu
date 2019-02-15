@@ -3776,6 +3776,21 @@ static HotplugHandler *spapr_get_hotplug_handler(MachineState *machine,
         object_dynamic_cast(OBJECT(dev), TYPE_SPAPR_CPU_CORE)) {
         return HOTPLUG_HANDLER(machine);
     }
+    if (object_dynamic_cast(OBJECT(dev), TYPE_PCI_DEVICE)) {
+        PCIDevice *pcidev = PCI_DEVICE(dev);
+        PCIBus *root = pci_device_root_bus(pcidev);
+        sPAPRPHBState *phb =
+            (sPAPRPHBState *)object_dynamic_cast(OBJECT(BUS(root)->parent),
+                                                 TYPE_SPAPR_PCI_HOST_BRIDGE);
+        PCIBus *bus = pci_get_bus(pcidev);
+
+        fprintf(stderr, "PCI hotplug!  bus = %s  root=%s  phb=%s\n",
+                BUS(bus)->name, BUS(root)->name, phb->dtbusname);
+
+        if (phb) {
+            return HOTPLUG_HANDLER(phb);
+        }
+    }
     return NULL;
 }
 
